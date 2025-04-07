@@ -1,5 +1,5 @@
 ###################################################################################################
-# Script que monitora a relação de PRECIPTAÇÃO nas Cidades de Joinville, Blumenau e Florianópolis #
+# Script que monitora a relação de TMED nas Cidades de Joinville, Blumenau e Florianópolis        #
 # (Projeto Dengue)                                                                                #
 #                                                                                                 #
 # Autor: Júlia Barreto da Silva                                                                   #
@@ -9,23 +9,21 @@
 
 ## Importando Bibliotecas ##
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import sys
-import matplotlib.dates as mdates
+import pandas as pd                 
+import matplotlib.pyplot as plt     
+import seaborn as sns               
+import numpy as np                  
+
 
 ## Abrindo Arquivos ##
 
-#url = "https://raw.githubusercontent.com/matheusf30/dados_dengue/refs/heads/main/prec_se.csv" #raw
-url = "https://raw.githubusercontent.com/matheusf30/dados_dengue/refs/heads/main/prec_semana_ate_2023.csv"
+url = "https://raw.githubusercontent.com/matheusf30/dados_dengue/refs/heads/main/tmed_se.csv" #raw
 casos = pd.read_csv(url)
 print(casos.head())
 casos.head() # Diferença na apresentação gráfica
 # Everton - TMIN
 # Bia - TMED
-# Júlia - TMAX
+# Júlia - CASOS TMED E PREC
 # Domênica - PREC (GFS)
 # Murilo - PREC (MERGE) / CASOS
 # Carol - FOCOS
@@ -41,30 +39,27 @@ print(casos.describe())         #Exibe estatísticas descritivas das colunas num
 # Pré-processamento
 
 casos["Semana"] = pd.to_datetime(casos["Semana"])
-prec23 = casos[casos["Semana"].dt.year == 2023]
-print(prec23)
-#sys.exit()
 print(casos.dtypes)
 
-municipios = prec23.columns[1:]  # Extrai todos os nomes de colunas, exceto a primeira (presumivelmente, "Semana"), para que municipios contenha os nomes das cidades.
+municipios = casos.columns[1:]  #Extrai todos os nomes de colunas, exceto a primeira (presumivelmente, "Semana"), para que municipios contenha os nomes das cidades.
 print(municipios)
 
-# Lista das cidades que você deseja manter
+# Lista das cidades que você deseja manter (todas em maiúsculas)
 cidades_desejadas = ["FLORIANÓPOLIS", "JOINVILLE", "BLUMENAU"]
 
 # Primeiro Laço: Série temporal para as cidades desejadas
 for municipio in cidades_desejadas:
-    print(f"Gerando gráfico para: {municipio}")  # Adicionando mensagem de depuração
-    plt.figure(figsize=(10, 6))
-    plt.plot(prec23["Semana"], prec23[municipio])  # Usando os dados filtrados para 2023
-    plt.title(f"PRECIPITAÇÃO DE {municipio} EM 2023")  # Adicionando o ano no título
-    plt.xlabel("Ano de 2023")  # Indicando explicitamente que os dados são de 2023
-    plt.ylabel("Precipitação (mm)")
-    plt.grid(True)  # Adiciona uma grade ao gráfico
-    plt.gca().patch.set_facecolor("honeydew")  # Altera o fundo do gráfico para a cor 'honeydew'
-    plt.show()
+	#if municipio.upper() in [cidade.upper() for cidade in cidades_desejadas]:  # Verifica se o município está na lista de cidades desejadas
+	print(f"Gerando gráfico para: {municipio}")  # Adicionando mensagem de depuração
+	plt.figure(figsize=(10, 6))
+	plt.plot(casos["Semana"], casos[municipio])
+	plt.title(f"CASOS DE DENGUE, MUNICÍPIO DE {municipio}")
+	plt.xlabel("Série Histórica (Semanas Epidemiológicas)")
+	plt.ylabel("Número de Casos de dengue")
+	plt.grid(True)  # Adiciona uma grade ao gráfico
+	plt.gca().patch.set_facecolor("honeydew")  # Altera o fundo do gráfico para a cor 'honeydew'
+	plt.show()
 
-'''
 plt.figure(figsize=(10, 6))
 plt.plot(casos["Semana"], casos["FLORIANÓPOLIS"], label= "Florianópolis")
 plt.plot(casos["Semana"], casos["JOINVILLE"], label= "Joinville")
@@ -76,7 +71,7 @@ plt.legend()
 plt.grid(True)  # Adiciona uma grade ao gráfico
 plt.gca().patch.set_facecolor("honeydew")  # Altera o fundo do gráfico para a cor 'honeydew'
 plt.show()
-'''
+
 '''
 #for municipio in municipios:    #Inicia um laço de repetição para iterar sobre todos os municípios.
   max = casos[municipio].max()  #Calcula o valor máximo de casos de dengue para cada município.
@@ -94,10 +89,10 @@ plt.show()
 max = {}
 min = {}
 soma = {}
-for municipio in cidades_desejadas:
-  max[municipio] = prec23[municipio].max()
-  min[municipio] = prec23[municipio].min()
-  soma[municipio] = prec23[municipio].sum()
+for municipio in municipios:
+  max[municipio] = casos[municipio].max()
+  min[municipio] = casos[municipio].min()
+  soma[municipio] = casos[municipio].sum()
 print(max)
 print(min)
 print(soma)
@@ -134,33 +129,6 @@ print(df_soma_asc)
 #plt.ylabel("Número Máximo de Casos de dengue")
 #plt.show()
 
-principais_max = df_max.head(3)  # Seleciona os 3 municípios com os maiores valores máximos de casos
-print(principais_max)
-
-# Dicionário para associar cada cidade à sua cor específica
-cores_cidades = {
-    "JOINVILLE": "#ff7f0e",
-    "FLORIANÓPOLIS": "#1f77b4",
-    "BLUMENAU": "#2ca02c"
-}
-
-# Converte os nomes das cidades para maiúsculo e aplica as cores corretas
-principais_max["Município"] = principais_max["Município"].str.upper()
-cores = [cores_cidades[mun] for mun in principais_max["Município"]]
-
-plt.figure(figsize=(10, 6), facecolor="honeydew")  # Define o fundo da figura
-plt.gca().set_facecolor("honeydew")  # Aplica o fundo ao eixo do gráfico
-
-plt.bar(principais_max["Município"], principais_max["Máximo"], color=cores, width=0.5)  # Barras mais finas
-plt.title("Preciptação nos três múnicipios Catarinenses analisados", fontsize=12, fontweight="bold")
-plt.xlabel("Cidades analisadas", fontsize=10)
-#plt.xticks(rotation=45, ha="right")  # Rotaciona e alinha os rótulos para melhor visualização
-plt.ylabel("Preciptação (mm)", fontsize=10)
-plt.grid(axis="y", linestyle="--", alpha=0.7)  # Grade no eixo Y para melhor visualização dos valores
-
-plt.show()
-
-'''
 #principais_max = df_max.head(20)    #Seleciona os 20 municípios com os maiores valores máximos de casos.
 principais_max = df_max.head(3)      #Seleciona os 3 municípios com os maiores valores máximos de casos. (Joinville, Blumenau e Floripa)
 print(principais_max)
@@ -172,7 +140,7 @@ plt.xticks(rotation = 90)
 plt.ylabel("Número Máximo de Casos de dengue")
 plt.gca().patch.set_facecolor("honeydew")
 plt.show()                           #Cria um gráfico de barras
-'''
+
 # """### Mínimos"""
 
 # plt.figure(figsize=(10, 6))
@@ -203,13 +171,13 @@ plt.show()                           #Cria um gráfico de barras
 # plt.ylabel("Temperatura Máxima (°C)")
 # plt.show()
 
-#Adicionando visualização para Precipitação
-#plt.figure(figsize=(10, 6))
-#plt.bar(df_max["Município"], df_max["Max_Precipitation"])
-#plt.title("VALOR MÁXIMO DA PRECIPITAÇÃO")
-#plt.xlabel("Municípios")
-#plt.xticks(rotation = 90)
-#plt.ylabel("Precipitação Máxima (mm)")
+# Adicionando visualização para Precipitação
+# plt.figure(figsize=(10, 6))
+# plt.bar(df_max["Município"], df_max["Max_Precipitation"])
+# plt.title("VALOR MÁXIMO DA PRECIPITAÇÃO")
+# plt.xlabel("Municípios")
+# plt.xticks(rotation = 90)
+# plt.ylabel("Precipitação Máxima (mm)")
 #plt.show()
 
 
@@ -247,49 +215,18 @@ plt.show()
 #plt.ylabel("Número de Casos de dengue")
 #plt.show()
 
-# Seleciona os 3 municípios com os maiores valores somados de precipitação
-principais_soma = df_soma.head(3)
-print(principais_soma)
-
-# Dicionário para associar cada cidade à sua cor específica
-cores_cidades = {
-    "JOINVILLE": "#ff7f0e",  # Laranja
-    "FLORIANÓPOLIS": "#1f77b4",  # Azul
-    "BLUMENAU": "#2ca02c"  # Verde
-}
-
-# Converte os nomes das cidades para maiúsculo e aplica as cores corretas
-principais_soma["Município"] = principais_soma["Município"].str.upper()
-cores = [cores_cidades[mun] for mun in principais_soma["Município"]]
-
-# Criação do gráfico de barras
-plt.figure(figsize=(10, 6), facecolor="honeydew")  # Define o fundo da figura
-plt.gca().set_facecolor("honeydew")  # Aplica o fundo ao eixo do gráfico
-
-plt.bar(principais_soma["Município"], principais_soma["Soma"], color=cores, width=0.5)  # Barras mais finas
-plt.title("Preciptação acumulada no ano de 2023", fontsize=12, fontweight="bold")
-plt.xlabel("Cidades analisadas", fontsize=10)
-#plt.xticks(rotation=90)  # Rotaciona os rótulos do eixo X para 90 graus
-plt.ylabel("Preciptação (mm)", fontsize=10)
-plt.grid(axis="y", linestyle="--", alpha=0.7)  # Grade no eixo Y para melhor visualização dos valores
-
-# Exibe o gráfico
-plt.show()
-
-
-'''
 #principais_soma = df_soma.head(20)
 principais_soma = df_soma.head(3)
 print(principais_soma)
 plt.figure(figsize=(10, 6))
 plt.bar(principais_soma["Município"], principais_soma["Soma"])
-plt.title("Soma histórica para preciptação das tês cidades Catarinenses")
+plt.title("SOMA HISTÓRICA DOS CASOS DE DENGUE EM SANTA CATARINA")
 plt.xlabel("Municípios Catarinenses")
 plt.xticks(rotation = 90)
 plt.ylabel("Número de Casos de dengue")
 plt.gca().patch.set_facecolor("honeydew")
 plt.show()
-'''
+
 ## Série Temporal
 
 
@@ -340,28 +277,3 @@ for municipio in principais_soma["Município"]:
   plt.gca().patch.set_facecolor("honeydew")
   plt.show()
 '''
-
-plt.figure(figsize=(10, 6))
-
-# Usando as cores especificadas para cada cidade
-plt.plot(prec23["Semana"], prec23["FLORIANÓPOLIS"], label="Florianópolis", color="#1f77b4")  # Azul
-plt.plot(prec23["Semana"], prec23["JOINVILLE"], label="Joinville", color="#ff7f0e")  # Laranja
-plt.plot(prec23["Semana"], prec23["BLUMENAU"], label="Blumenau", color="#2ca02c")  # Verde
-
-# Título e rótulos
-plt.title(f"Preciptação no ano de 2023 para as cidades analisadas")
-plt.xlabel("Preciptação acumulada de 2023")
-plt.ylabel("Preciptação (mm)")
-
-# Adicionando a legenda
-plt.legend()
-
-# Exibindo a grade
-plt.grid(True)
-
-# Altera o fundo do gráfico para a cor 'honeydew'
-plt.gca().patch.set_facecolor("honeydew")  
-
-# Exibe o gráfico
-plt.show()
-
