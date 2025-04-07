@@ -1,5 +1,5 @@
 ###################################################################################################
-# Script que monitora a relação de TMED nas Cidades de Joinville, Blumenau e Florianópolis        #
+# Script que monitora a relação de TMIN nas Cidades de Joinville, Blumenau e Florianópolis        #
 # (Projeto Dengue)                                                                                #
 #                                                                                                 #
 # Autor: Júlia Barreto da Silva                                                                   #
